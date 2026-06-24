@@ -437,10 +437,7 @@ class IncusApi {
                                        Integer uid, Integer gid, String cwd,
                                        Map<String, String> env) {
         return retryOnNotRunning(() -> {
-            if (transport instanceof HttpsTransport) {
-                return execCaptureRecordOutput(instance, command, uid, gid, cwd, env);
-            }
-            return execCaptureWebSocket(instance, command, uid, gid, cwd, env);
+            return execCaptureRecordOutput(instance, command, uid, gid, cwd, env);
         });
     }
 
@@ -695,8 +692,7 @@ class IncusApi {
     private void wsCloseOnly(String opPath, String secret) {
         try (var ws = transport.openWebSocket(opPath + "/websocket?secret=" + secret)) {
             ws.sendClose();
-        } catch (IOException e) {
-            // Non-fatal: stdin close failure just means the command may hang waiting for input.
+        } catch (IOException ignored) {
         }
     }
 
@@ -705,7 +701,8 @@ class IncusApi {
         try (var ws = transport.openWebSocket(opPath + "/websocket?secret=" + secret)) {
             byte[] payload;
             while ((payload = ws.readPayload()) != null) buf.write(payload);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     /** Connect a WebSocket and stream all data to dst until the connection closes. */
